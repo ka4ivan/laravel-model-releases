@@ -11,12 +11,20 @@
 ```shell
 composer require ka4ivan/laravel-model-releases
 ```
-<!-- 
+
 2) Publish package resource:
 ```shell
-php artisan vendor:publish --provider="Ka4ivan\ViewSortable\ServiceProvider"
+php artisan vendor:publish --provider="Ka4ivan\ModelReleases\ServiceProvider"
 ```
 - config
+- migration
+
+3) Run migration:
+```shell
+php artisan migrate
+```
+
+<!-- 
 
 ## Usage
 
