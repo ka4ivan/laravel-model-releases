@@ -17,13 +17,19 @@ trait HasReleases
 {
     protected static function bootHasReleases()
     {
-//        static::created(function ($model) {
-//
-//        });
-
         static::deleted(function (Model $model) {
             $model->handleDelete();
         });
+    }
+
+    /**
+     * Реліз до якого відноситься дана модель
+     *
+     * @return BelongsTo
+     */
+    public function release(): BelongsTo
+    {
+        return $this->BelongsTo(\ModelRelease::getReleaseModel());
     }
 
     /**
@@ -33,7 +39,7 @@ trait HasReleases
      */
     public function prerelease(): HasOne
     {
-        return $this->hasOne(self::class, 'prerelease_id');
+        return $this->hasOne(self::class, 'id', 'prerelease_id');
     }
 
     /**
@@ -43,7 +49,7 @@ trait HasReleases
      */
     public function original(): BelongsTo
     {
-        return $this->belongsTo(self::class, 'prerelease_id','id');
+        return $this->belongsTo(self::class, 'prerelease_id', 'id');
     }
 
     public function scopeByReleased(Builder $query): Builder
@@ -109,13 +115,16 @@ trait HasReleases
 
     private function updateRelations(Model $model, array $relationsToReplicate = []): void
     {
+        // TODO Доробити збереження якщо це інший зв'язок (поліморфний - model_id, звичайний - post_id)
         foreach ($relationsToReplicate as $relation) {
             foreach ($this->$relation as $original) {
                 $replica = $original->replicate();
                 $replica->setAttribute($this->getForeignKey(), $model->id);
                 $replica->release_id = null;
-                $replica->prerelease_id = $original->id;
-                $replica->save();
+                $replica->saveQuietly();
+
+                $original->prerelease_id = $replica->id;
+                $replica->saveQuietly();
             }
         }
     }
@@ -126,12 +135,14 @@ trait HasReleases
             return $this;
         }
 
-        $draft = $this->prerelease ?? $this->replicate();
-        $draft->prerelease_id = $this->id;
-        $draft->release_id = null;
-        $draft->setRelations([]);
-        $draft->saveQuietly();
+        $replica = $this->prerelease ?? $this->replicate();
+        $replica->release_id = null;
+        $replica->setRelations([]);
+        $replica->saveQuietly();
 
-        return $draft;
+        $this->prerelease_id = $replica->id;
+        $this->saveQuietly();
+
+        return $replica;
     }
 }
