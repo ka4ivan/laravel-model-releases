@@ -42,14 +42,14 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
     {
         Blueprint::macro('releaseUuidFields', function () {
             /** @var Blueprint $this */
-            $this->timestamp('archive_at')->nullable();
+            $this->timestamp('archive_at')->nullable()->after('deleted_at');
             $this->uuid('release_id')->nullable()->index();
             $this->uuid('prerelease_id')->nullable();
         });
 
         Blueprint::macro('releaseFields', function () {
             /** @var Blueprint $this */
-            $this->timestamp('archive_at')->nullable();
+            $this->timestamp('archive_at')->nullable()->after('deleted_at');
             $this->uuid('release_id')->nullable()->index();
             $this->unsignedBigInteger('prerelease_id')->nullable();
         });

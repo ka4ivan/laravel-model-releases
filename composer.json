@@ -27,7 +27,10 @@
         "laravel": {
             "providers": [
                 "Ka4ivan\\ModelReleases\\ServiceProvider"
-            ]
+            ],
+            "aliases": {
+                "ModelRelease": "Ka4ivan\\ModelReleases\\Facades\\ModelRelease"
+            }
         }
     },
     "minimum-stability": "dev",
