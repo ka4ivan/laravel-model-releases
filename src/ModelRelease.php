@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Ka4ivan\ModelReleases;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ModelRelease
 {
@@ -99,6 +102,47 @@ class ModelRelease
         }
 
         $model->save();
+    }
+
+    public function updateWithReleases(array $data): Model
+    {
+        return DB::transaction(function () use ($data) {
+            $model = $this->createDraftIfNeeded();
+
+            $model->update($data);
+
+            $this->updateRelations($model);
+
+            return $model;
+        });
+    }
+
+    private function updateRelations(Model $model): void
+    {
+        foreach ($this->relationsToReplicate() as $relation) {
+            foreach ($this->$relation as $original) {
+                $replica = $original->replicate();
+                $replica->setAttribute($this->getForeignKey(), $model->id);
+                $replica->release_id = null;
+                $replica->prerelease_id = $original->id;
+                $replica->save();
+            }
+        }
+    }
+
+    public function getDraftOrOriginal(): Model
+    {
+        if (!$this->release_id) {
+            return $this;
+        }
+
+        $draft = $this->prerelease ?? $this->replicate();
+        $draft->prerelease_id = $this->id;
+        $draft->release_id = null;
+        $draft->setRelations([]);
+        $draft->saveQuietly();
+
+        return $draft;
     }
 
     public function getReleaseModel(): string
