@@ -25,7 +25,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
     protected function publishConfig(): void
     {
         $this->publishes([
-            __DIR__ . '/../config/model-releases.php' => config_path('model-releasese.php'),
+            __DIR__ . '/../config/model-releases.php' => config_path('model-releases.php'),
         ], 'model-releases');
     }
 

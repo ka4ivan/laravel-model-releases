@@ -12,7 +12,7 @@ class Release extends Model
 {
     use HasFactory, HasUuids;
 
-    protected array $guarded = [
+    protected $guarded = [
         'id',
     ];
 }

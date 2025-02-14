@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Model;
 
 trait HasReleases
 {
@@ -17,7 +21,7 @@ trait HasReleases
 //
 //        });
 
-        static::deleting(function (Model $model) {
+        static::deleted(function (Model $model) {
             $model->handleDelete();
         });
     }
@@ -72,6 +76,9 @@ trait HasReleases
         if ($this->release_id) {
             $this->archive();
             $this->prerelease?->archive();
+
+            $this->restore();
+            $this->prerelease?->restore();
         } else {
             $this->forceDelete();
         }
@@ -85,5 +92,46 @@ trait HasReleases
     public function unarchive(): void
     {
         $this->update(['archive_at' => null]);
+    }
+
+    public function updateWithReleases(array $data, array $relationsToReplicate = []): Model
+    {
+        return DB::transaction(function () use ($data, $relationsToReplicate) {
+            $model = $this->getDraftOrOriginal();
+
+            $model->update($data);
+
+            $this->updateRelations($model, $relationsToReplicate);
+
+            return $model;
+        });
+    }
+
+    private function updateRelations(Model $model, array $relationsToReplicate = []): void
+    {
+        foreach ($relationsToReplicate as $relation) {
+            foreach ($this->$relation as $original) {
+                $replica = $original->replicate();
+                $replica->setAttribute($this->getForeignKey(), $model->id);
+                $replica->release_id = null;
+                $replica->prerelease_id = $original->id;
+                $replica->save();
+            }
+        }
+    }
+
+    public function getDraftOrOriginal(): Model
+    {
+        if (!$this->release_id) {
+            return $this;
+        }
+
+        $draft = $this->prerelease ?? $this->replicate();
+        $draft->prerelease_id = $this->id;
+        $draft->release_id = null;
+        $draft->setRelations([]);
+        $draft->saveQuietly();
+
+        return $draft;
     }
 }
