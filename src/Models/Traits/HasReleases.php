@@ -105,7 +105,7 @@ trait HasReleases
     public function updateWithReleases(array $data, array $relationsData = []): Model
     {
         return DB::transaction(function () use ($data, $relationsData) {
-            $model = $this->getDraftOrOriginal();
+            $model = $this->getPrereleaseOrOrigin();
 
             $model->update($data);
 
@@ -118,15 +118,15 @@ trait HasReleases
     private function updateRelations(Model $model, array $relationsData = []): void
     {
         foreach (config('model-releases.models.' . __CLASS__ . '.relations', []) as $relation) {
-            foreach ($this->$relation ?? [] as $original) {
-                $original->getDraftOrOriginal(array_merge([
+            foreach ($this->$relation ?? [] as $origin) {
+                $origin->getPrereleaseOrOrigin(array_merge([
                     $this->{$relation}()->getForeignKeyName() => $model->id
                 ], $relationsData[$relation] ?? []));
             }
         }
     }
 
-    public function getDraftOrOriginal(array $replicaData = []): Model
+    public function getPrereleaseOrOrigin(array $replicaData = []): Model
     {
         if (!$this->release_id) {
             return $this;

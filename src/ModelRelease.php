@@ -46,11 +46,11 @@ class ModelRelease
 
     private function doRelease(Model $model): void
     {
-        /** @var Model $original */
-        if ($original = $model->origin) {
-            $original->release_id = $this->release->id;
-            $original->saveQuietly();
-            $original->delete();
+        /** @var Model $origin */
+        if ($origin = $model->origin) {
+            $origin->release_id = $this->release->id;
+            $origin->saveQuietly();
+            $origin->delete();
         }
 
         $model->release_id = $this->release->id;
@@ -110,11 +110,11 @@ class ModelRelease
 
     private function doRollback(Model $model): void
     {
-        /** @var Model $original */
-        if ($original = $model->origin) {
-            $original->release_id = $this->prevRelease?->id;
-            $original->restore();
-            $original->saveQuietly();
+        /** @var Model $origin */
+        if ($origin = $model->origin) {
+            $origin->release_id = $this->prevRelease?->id;
+            $origin->restore();
+            $origin->saveQuietly();
         }
 
         if ($model->deleted_at) {
