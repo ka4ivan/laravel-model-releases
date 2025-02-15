@@ -5,102 +5,126 @@ declare(strict_types=1);
 namespace Ka4ivan\ModelReleases;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class ModelRelease
 {
     private ?Model $release;
     private ?Model $prevRelease;
 
-    public function runRelease(string $name = ''): array
+    public function runRelease(array $data = []): array
     {
-        $this->release = $this->getReleaseModel()::create([
-            'name' => $name,
-        ]);
+        try {
+            return DB::transaction(function () use ($data) {
+                $this->release = $this->getReleaseModel()::create($data);
 
-        foreach (config('model-releases.models', []) as $model) {
-            $model::query()
-                ->with(['original'])
-                ->whereNull('release_id')
-                ->orWhere(fn ($q) => $q->whereNotNull('archive_at')->whereNull('deleted_at'))
-                ->chunk(50, function ($entities) {
-                    foreach ($entities as $entity) {
-                        $this->doRelease($entity);
-                    }
-                });
+                foreach (array_keys(config('model-releases.models', [])) as $model) {
+                    $model::query()
+                        ->with(['origin'])
+                        ->whereNull('release_id')
+                        ->orWhere(fn($q) => $q->whereNotNull('archive_at')->whereNull('deleted_at'))
+                        ->chunk(50, function ($entities) {
+                            foreach ($entities as $entity) {
+                                $this->doRelease($entity);
+                            }
+                        });
+                }
+
+                return [
+                    'status' => 'success',
+                    'message' => 'The release was successfully created!',
+                ];
+            });
+        } catch (Throwable $e) {
+            return [
+                'status' => 'error',
+                'message' => 'The release failed: ' . $e->getMessage(),
+            ];
         }
-
-        return [
-            'status' => 'success',
-            'message' => 'The release was successful created!',
-        ];
     }
 
     private function doRelease(Model $model): void
     {
         /** @var Model $original */
-        if ($original = $model->original) {
+        if ($original = $model->origin) {
             $original->release_id = $this->release->id;
+            $original->saveQuietly();
             $original->delete();
-            $original->save();
         }
 
         $model->release_id = $this->release->id;
+        $model->saveQuietly();
 
         if ($model->archive_at) {
             $model->delete();
         }
-
-        $model->save();
     }
 
     public function rollbackRelease(): array
     {
-        $this->release = $this->getReleaseModel()::query()->latest('created_at')->first();
-        $this->prevRelease = $this->getReleaseModel()::query()->latest('created_at')->skip(1)->first();
+        try {
+            return DB::transaction(function () {
+                $this->release = $this->getReleaseModel()::query()->latest('created_at')->first();
+                $this->prevRelease = $this->getReleaseModel()::query()->latest('created_at')->skip(1)->first();
 
-        if (!$this->release) {
+                if (!$this->release) {
+                    return [
+                        'status' => 'warning',
+                        'message' => 'No release available!',
+                    ];
+                }
+
+                foreach (array_keys(config('model-releases.models', [])) as $model) {
+                    $model::query()
+                        ->whereNull('release_id')
+                        ->forceDelete();
+
+                    $model::query()
+                        ->with([
+                            'origin' => fn($q) => $q->withTrashed()->where('release_id', $this->release?->id),
+                        ])
+                        ->withTrashed()
+                        ->where('release_id', $this->release->id)
+                        ->chunk(50, function ($entities) {
+                            foreach ($entities as $entity) {
+                                $this->doRollback($entity);
+                            }
+                        });
+                }
+
+                $this->release->delete();
+
+                return [
+                    'status' => 'success',
+                    'message' => 'The last release was rollbacked!',
+                ];
+            });
+        } catch (Throwable $e) {
             return [
-                'status' => 'warning',
-                'message' => 'No release available!',
+                'status' => 'error',
+                'message' => 'Rollback failed: ' . $e->getMessage(),
             ];
         }
-
-        foreach (config('model-releases.models', []) as $model) {
-            $model::query()
-                ->with([
-                    'original' => fn($q) => $q->withTrashed()->where('release_id', $this->release?->id),
-                ])
-                ->withTrashed()
-                ->where('release_id', $this->release->id)
-                ->chunk(50, function ($entities) {
-                    foreach ($entities as $entity) {
-                        $this->doRelease($entity);
-                    }
-                });
-        }
-
-        return [
-            'status' => 'success',
-            'message' => 'The last release was rollbacked!',
-        ];
     }
 
     private function doRollback(Model $model): void
     {
         /** @var Model $original */
-        if ($original = $model->original) {
-            $original->release_id = $this->prevRelease->id;
+        if ($original = $model->origin) {
+            $original->release_id = $this->prevRelease?->id;
             $original->restore();
-            $original->save();
+            $original->saveQuietly();
         }
 
         if ($model->deleted_at) {
             $model->restore();
+            $model->release_id = $this->prevRelease?->id;
         } else {
             $model->release_id = null;
         }
 
-        $model->save();
+        $model->saveQuietly();
     }
 
     public function getReleaseModel(): string

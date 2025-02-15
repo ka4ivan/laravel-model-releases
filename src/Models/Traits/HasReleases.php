@@ -7,21 +7,15 @@ namespace Ka4ivan\ModelReleases\Models\Traits;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Schema;
 
 trait HasReleases
 {
-    protected static function bootHasReleases()
-    {
-        static::deleted(function (Model $model) {
-            $model->handleDelete();
-        });
-    }
-
     /**
      * Реліз до якого відноситься дана модель
      *
@@ -47,9 +41,9 @@ trait HasReleases
      *
      * @return BelongsTo
      */
-    public function original(): BelongsTo
+    public function origin(): BelongsTo
     {
-        return $this->belongsTo(self::class, 'prerelease_id', 'id');
+        return $this->belongsTo(self::class, 'id', 'prerelease_id');
     }
 
     public function scopeByReleased(Builder $query): Builder
@@ -77,19 +71,6 @@ trait HasReleases
         return boolval($this->archive_at);
     }
 
-    protected function handleDelete(): void
-    {
-        if ($this->release_id) {
-            $this->archive();
-            $this->prerelease?->archive();
-
-            $this->restore();
-            $this->prerelease?->restore();
-        } else {
-            $this->forceDelete();
-        }
-    }
-
     public function archive(): void
     {
         $this->update(['archive_at' => Carbon::now()]);
@@ -100,49 +81,91 @@ trait HasReleases
         $this->update(['archive_at' => null]);
     }
 
-    public function updateWithReleases(array $data, array $relationsToReplicate = []): Model
+    public function deleteWithReleases(): Model
     {
-        return DB::transaction(function () use ($data, $relationsToReplicate) {
+        if ($this->release_id) {
+            $this->archive();
+            $this->prerelease?->archive();
+        } else {
+            $this->forceDelete();
+            $this->origin?->updateQuietly([
+                'prerelease_id' => null,
+            ]);
+
+            foreach (config('model-releases.models.' . __CLASS__ . '.relations', []) as $relation) {
+                $this->origin->{$relation}()->update([
+                    'prerelease_id' => null,
+                ]);
+            }
+        }
+
+        return $this;
+    }
+
+    public function updateWithReleases(array $data, array $relationsData = []): Model
+    {
+        return DB::transaction(function () use ($data, $relationsData) {
             $model = $this->getDraftOrOriginal();
 
             $model->update($data);
 
-            $this->updateRelations($model, $relationsToReplicate);
+            $this->updateRelations($model, $relationsData);
 
             return $model;
         });
     }
 
-    private function updateRelations(Model $model, array $relationsToReplicate = []): void
+    private function updateRelations(Model $model, array $relationsData = []): void
     {
-        // TODO Доробити збереження якщо це інший зв'язок (поліморфний - model_id, звичайний - post_id)
-        foreach ($relationsToReplicate as $relation) {
-            foreach ($this->$relation as $original) {
-                $replica = $original->replicate();
-                $replica->setAttribute($this->getForeignKey(), $model->id);
-                $replica->release_id = null;
-                $replica->saveQuietly();
-
-                $original->prerelease_id = $replica->id;
-                $replica->saveQuietly();
+        foreach (config('model-releases.models.' . __CLASS__ . '.relations', []) as $relation) {
+            foreach ($this->$relation ?? [] as $original) {
+                $original->getDraftOrOriginal(array_merge([
+                    $this->{$relation}()->getForeignKeyName() => $model->id
+                ], $relationsData[$relation] ?? []));
             }
         }
     }
 
-    public function getDraftOrOriginal(): Model
+    public function getDraftOrOriginal(array $replicaData = []): Model
     {
         if (!$this->release_id) {
             return $this;
         }
 
-        $replica = $this->prerelease ?? $this->replicate();
+        $replica = $this->prerelease ?? $this->findByUniqueFields($replicaData) ?? $this->replicate();
         $replica->release_id = null;
         $replica->setRelations([]);
-        $replica->saveQuietly();
+
+        foreach ($replicaData as $key => $value) {
+            $replica->{$key} = $value;
+        }
+
+        $replica->save();
 
         $this->prerelease_id = $replica->id;
-        $this->saveQuietly();
+        $this->save();
 
         return $replica;
+    }
+
+    private function findByUniqueFields(array $fields = []): ?Model
+    {
+        $table = $this->getTable();
+
+        $uniqueIndexes = collect(Schema::getIndexes($table))
+            ->where('unique', true)
+            ->where('primary', false)
+            ->pluck('columns');
+
+        foreach ($uniqueIndexes as $columns) {
+            $query = self::query()
+                ->where(array_merge(array_intersect_key($this->attributes, array_flip($columns)), $fields));
+
+            if ($model = $query->first()) {
+                return $model;
+            }
+        }
+
+        return null;
     }
 }
