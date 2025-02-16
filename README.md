@@ -290,7 +290,7 @@ public function origin(): BelongsTo
 
 #### Release Changelog
 ```php
-$release = Release::fist();
+$release = Release::first();
 
 $changelog = $release->changelog();
 
@@ -321,7 +321,7 @@ $changelog = $release->changelog();
 ```
 OR only one model.
 ```php
-$release = Release::fist();
+$release = Release::first();
 
 $changelog = $release->changelog(Article::class);
 
