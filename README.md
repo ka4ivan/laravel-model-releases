@@ -21,6 +21,7 @@
     - [Run/Rollback Releases](#runrollback-releases)
         - [Run release](#run-release)
         - [Rollback release](#rollback-release)
+  - [Clean outdated release data](#clean-outdated-release-data)
 
 ## Installation
 
@@ -187,6 +188,7 @@ Here's what they actually add.
 Blueprint::macro('releaseUuidFields', function () {
     /** @var Blueprint $this */
     $this->timestamp('archive_at')->nullable()->after('deleted_at');
+    $this->json('release_data')->nullable();
     $this->foreignUuid('release_id')->nullable()->constrained('releases')->onDelete('set null');
     $this->uuid('prerelease_id')->nullable();
 });
@@ -194,6 +196,7 @@ Blueprint::macro('releaseUuidFields', function () {
 Blueprint::macro('releaseFields', function () {
     /** @var Blueprint $this */
     $this->timestamp('archive_at')->nullable()->after('deleted_at');
+    $this->json('release_data')->nullable();
     $this->foreignUuid('release_id')->nullable()->constrained('releases')->onDelete('set null');
     $this->unsignedBigInteger('prerelease_id')->nullable();
 });
@@ -201,7 +204,7 @@ Blueprint::macro('releaseFields', function () {
 Blueprint::macro('dropReleaseFields', function () {
     /** @var Blueprint $this */
     $this->dropForeign(['release_id']);
-    $this->dropColumn(['release_id', 'prerelease_id', 'archive_at']);
+    $this->dropColumn(['release_id', 'prerelease_id', 'release_data', 'archive_at']);
 });
 ```
 
@@ -408,3 +411,17 @@ $res = \ModelRelease::rollbackRelease();
 //        'message' => 'Rollback failed: ' . $e->getMessage(),
 //    ];
 ```
+
+### Clean outdated release data
+To clean up outdated release data, you can use the command
+```shell
+php artisan release:clean
+```
+
+This command can be run periodically in the cron
+```php
+$schedule->command('release:clean')
+    ->daily()
+    ->runInBackground();
+```
+- The number of days after which data is considered outdated can be specified in the config file `config('model-releases.cleanup.outdated_releases_for_days')`

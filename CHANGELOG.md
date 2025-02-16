@@ -23,3 +23,6 @@
 ## 1.2.0 - 2024-02-16
 - Add clean outdated release data command - `php artisan release:clean`
 - Add new field to `releases` table - `cleaned_at`
+
+## 1.2.1 - 2024-02-16
+- Upd README.md
