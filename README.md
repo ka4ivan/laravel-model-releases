@@ -89,7 +89,7 @@ class Article extends Model
 
 ### Preparing your migration
 
-#### If this is one migration.
+If this is one migration.
 ```php
 <?php
 
@@ -134,7 +134,7 @@ return new class extends Migration
 };
 ```
 
-#### If this is an additional migration.
+If this is an additional migration.
 ```php
 <?php
 
