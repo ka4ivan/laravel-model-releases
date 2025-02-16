@@ -15,4 +15,54 @@ class Release extends Model
     protected $guarded = [
         'id',
     ];
+
+    public function changelog(string $model = null): array
+    {
+        $changelog = [
+            'deleted' => [],
+            'updated' => [],
+            'created' => [],
+        ];
+
+        $models = $model ? [$model] : array_keys(config('model-releases.models', []));
+
+        foreach ($models as $modelClass) {
+            $entities = $modelClass::query()
+                ->where('release_id', $this->id)
+                ->withTrashed()
+                ->with([
+                    'origin' => fn($q) => $q->withTrashed()->where('release_id', $this->previousRelease()?->id),
+                ])
+                ->get();
+
+            foreach ($entities as $entity) {
+                $type = $entity->archive_at && $entity->origin ? 'deleted'
+                    : ($entity->origin ? 'updated' : 'created');
+
+                if ($model) {
+                    $changelog[$type][] = $entity->id;
+                } else {
+                    $changelog[$type][$entity->getMorphClass()][] = $entity->id;
+                }
+            }
+        }
+
+        return array_filter($changelog);
+    }
+
+    public function previousRelease(): ?self
+    {
+        return self::query()
+            ->where('created_at', '<', $this->created_at)
+            ->orderBy('created_at', 'desc')
+            ->first();
+    }
+
+    public function nextRelease(): ?self
+    {
+        return self::query()
+            ->where('created_at', '>', $this->created_at)
+            ->orderBy('created_at', 'desc')
+            ->first();
+    }
 }

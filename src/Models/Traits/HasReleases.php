@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -44,6 +45,20 @@ trait HasReleases
     public function origin(): BelongsTo
     {
         return $this->belongsTo(self::class, 'id', 'prerelease_id');
+    }
+
+    public function initializeHasReleases()
+    {
+        $this->mergeCasts([
+            'release_data' => 'array'
+        ]);
+
+        if ($this->fillable) {
+            $this->fillable[] = 'archive_at';
+            $this->fillable[] = 'release_data';
+            $this->fillable[] = 'release_id';
+            $this->fillable[] = 'prerelease_id';
+        }
     }
 
     public function scopeByReleased(Builder $query): Builder
@@ -84,8 +99,9 @@ trait HasReleases
     public function deleteWithReleases(): Model
     {
         if ($this->release_id) {
-            $this->archive();
-            $this->prerelease?->archive();
+            $this->updateWithReleases([
+                'archive_at' => Carbon::now(),
+            ]);
         } else {
             $this->forceDelete();
             $this->origin?->updateQuietly([
@@ -146,6 +162,45 @@ trait HasReleases
         $this->save();
 
         return $replica;
+    }
+
+    /**
+     * @param $key
+     * @param null $default
+     * @return array|\ArrayAccess|mixed
+     */
+    public function getReleaseData($key, $default = null)
+    {
+        return Arr::get($this->release_data ?? [], $key, $default);
+    }
+
+    public function changelog($release = null): array
+    {
+        $changelog = [];
+
+        $builder = self::query()
+            ->withTrashed()
+            ->whereJsonContains('release_data->source_id', $this->getReleaseData('source_id'))
+            ->with([
+                'release',
+                'origin' => fn($q) => $q->withTrashed(),
+            ])
+            ->oldest();
+
+        if ($release) {
+            $builder->where('release_id', $release->id);
+        }
+
+        $entities = $builder->get();
+
+        foreach ($entities as $entity) {
+            $type = $entity->archive_at && $entity->origin ? 'deleted'
+                : ($entity->origin ? 'updated' : 'created');
+
+            $changelog[$entity->release_id ?? 'prerelease'][$type] = $entity;
+        }
+
+        return $changelog;
     }
 
     private function findByUniqueFields(array $fields = []): ?Model

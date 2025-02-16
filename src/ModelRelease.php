@@ -47,12 +47,16 @@ class ModelRelease
     private function doRelease(Model $model): void
     {
         /** @var Model $origin */
-        if ($origin = $model->origin) {
+        $origin = $model->origin;
+        $sourceId = $origin?->getReleaseData('source_id') ?? $model->id;
+
+        if ($origin) {
             $origin->saveQuietly();
             $origin->delete();
         }
 
         $model->release_id = $this->release->id;
+        $model->setAttribute('release_data->source_id', $sourceId);
         $model->saveQuietly();
 
         if ($model->archive_at) {
@@ -117,13 +121,11 @@ class ModelRelease
 
         if ($model->deleted_at) {
             $model->restore();
-            $model->release_id = $this->prevRelease?->id;
         } elseif ($model->archive_at) {
             $model->archive_at = null;
-            $model->release_id = null;
-        } else {
-            $model->release_id = null;
         }
+
+        $model->release_id = null;
 
         $model->saveQuietly();
     }
