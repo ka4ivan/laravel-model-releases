@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Schema;
 trait HasReleases
 {
     /**
-     * Реліз до якого відноситься дана модель
+     * Release to which this model belongs
      *
      * @return BelongsTo
      */
@@ -27,7 +27,7 @@ trait HasReleases
     }
 
     /**
-     * Модель яка ще не в релізі і є чернеткою моделі в релізі
+     * A model that is not yet in release and is a draft of a model in release
      *
      * @return HasOne
      */
@@ -37,7 +37,7 @@ trait HasReleases
     }
 
     /**
-     * Модель яка в релізі і є оригіналом моделі не в релізі
+     * The model that is in the release and is the original of the model that is not in the release
      *
      * @return BelongsTo
      */

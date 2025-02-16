@@ -2,11 +2,17 @@
 
 return [
     /**
-     * Models for which slugs will be created using the command
+     * Models with relations for which slugs will be created using the command
      */
     'models' => [
-//        \App\Models\Page::class,
-//        \App\Models\Product::class,
+//        \App\Models\Post::class => [
+//            'relations' => [
+//                'media',
+//                'translations',
+//            ],
+//        ],
+//        \App\Models\Translations\PostTranslation::class => [],
+//        \App\Models\Media::class => [],
     ],
 
     /**

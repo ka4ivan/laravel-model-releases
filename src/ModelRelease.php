@@ -48,7 +48,6 @@ class ModelRelease
     {
         /** @var Model $origin */
         if ($origin = $model->origin) {
-            $origin->release_id = $this->release->id;
             $origin->saveQuietly();
             $origin->delete();
         }
@@ -82,7 +81,7 @@ class ModelRelease
 
                     $model::query()
                         ->with([
-                            'origin' => fn($q) => $q->withTrashed()->where('release_id', $this->release?->id),
+                            'origin' => fn($q) => $q->withTrashed()->where('release_id', $this->prevRelease?->id),
                         ])
                         ->withTrashed()
                         ->where('release_id', $this->release->id)
@@ -112,7 +111,6 @@ class ModelRelease
     {
         /** @var Model $origin */
         if ($origin = $model->origin) {
-            $origin->release_id = $this->prevRelease?->id;
             $origin->restore();
             $origin->saveQuietly();
         }
