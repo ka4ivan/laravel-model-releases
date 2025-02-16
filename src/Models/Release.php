@@ -16,7 +16,7 @@ class Release extends Model
         'id',
     ];
 
-    public function changelog(string $model = null): array
+    public function changelog(string $model = null, array $fields = []): array
     {
         $changelog = [
             'deleted' => [],
@@ -39,10 +39,14 @@ class Release extends Model
                 $type = $entity->archive_at && $entity->origin ? 'deleted'
                     : ($entity->origin ? 'updated' : 'created');
 
+                $filteredEntity = $fields
+                    ? $entity->only($fields)
+                    : $entity->id;
+
                 if ($model) {
-                    $changelog[$type][] = $entity->id;
+                    $changelog[$type][] = $filteredEntity;
                 } else {
-                    $changelog[$type][$entity->getMorphClass()][] = $entity->id;
+                    $changelog[$type][$entity->getMorphClass()][] = $filteredEntity;
                 }
             }
         }
