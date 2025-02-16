@@ -4,6 +4,22 @@
 [![Build Status](https://img.shields.io/github/stars/ka4ivan/laravel-model-releases.svg?style=for-the-badge)](https://github.com/ka4ivan/laravel-model-releases)
 [![Latest Stable Version](https://img.shields.io/packagist/v/ka4ivan/laravel-model-releases.svg?style=for-the-badge)](https://packagist.org/packages/ka4ivan/laravel-model-releases)
 [![Total Downloads](https://img.shields.io/packagist/dt/ka4ivan/laravel-model-releases.svg?style=for-the-badge)](https://packagist.org/packages/ka4ivan/laravel-model-releases)
+[![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://stand-with-ukraine.pp.ua)
+
+
+## 📖 Table of Contents
+- [Installation](#installation)
+- [Usage](#usage)
+    - [Preparing your model](#preparing-your-model)
+    - [Preparing your migration](#preparing-your-migration)
+    - [Base model usage](#base-model-usage)
+        - [Store model](#store-model)
+        - [Update model](#update-model)
+        - [Delete model](#delete-model)
+    - [Base relationships](#base-relationships)
+    - [Run/Rollback Releases](#runrollback-releases)
+        - [Run release](#run-release)
+        - [Rollback release](#rollback-release)
 
 ## Installation
 
@@ -272,7 +288,7 @@ public function origin(): BelongsTo
 
 ### Run/Rollback Releases
 
-#### Run
+#### Run release
 ```php
 $res = \ModelRelease::runRelease($data);
 
@@ -287,7 +303,7 @@ $res = \ModelRelease::runRelease($data);
 //    ]; 
 ```
 
-#### Rollback
+#### Rollback release
 ```php
 $res = \ModelRelease::runRelease($data);
 
