@@ -26,3 +26,6 @@
 
 ## 1.2.1 - 2024-02-16
 - Upd README.md
+
+## 1.2.2 - 2024-02-17
+- Add clearing of all prerelease data

@@ -128,6 +128,21 @@ class ModelRelease
         $model->saveQuietly();
     }
 
+    public function clearPrereleases(): array
+    {
+        foreach (array_keys(config('model-releases.models', [])) as $model) {
+            $model::query()
+                ->whereNull('release_id')
+                ->withTrashed()
+                ->forceDelete();
+        }
+
+        return [
+            'status' => 'success',
+            'message' => 'Prereleases was successfully cleared!',
+        ];
+    }
+    
     public function getReleaseModel(): string
     {
         return config('model-release.model', \Ka4ivan\ModelReleases\Models\Release::class);

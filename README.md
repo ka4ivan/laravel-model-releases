@@ -21,7 +21,9 @@
     - [Run/Rollback Releases](#runrollback-releases)
         - [Run release](#run-release)
         - [Rollback release](#rollback-release)
-  - [Clean outdated release data](#clean-outdated-release-data)
+  - [Clean data](#clean-data)
+    - [Clean outdated release data](#clean-outdated-release-data)
+    - [Clear all Prereleases](#clear-all-prereleases)
 
 ## Installation
 
@@ -412,7 +414,9 @@ $res = \ModelRelease::rollbackRelease();
 //    ];
 ```
 
-### Clean outdated release data
+### Clean data
+
+#### Clean outdated release data
 To clean up outdated release data, you can use the command
 ```shell
 php artisan release:clean
@@ -425,3 +429,14 @@ $schedule->command('release:clean')
     ->runInBackground();
 ```
 - The number of days after which data is considered outdated can be specified in the config file `config('model-releases.cleanup.outdated_releases_for_days')`
+
+#### Clear all Prereleases
+Clears all data that is not in the release
+```php
+$res = \ModelRelease::clearPrereleases()
+
+//    $res = [
+//        'status' => 'success',
+//        'message' => 'Prereleases was successfully cleared!',
+//    ]
+```
