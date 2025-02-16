@@ -71,7 +71,7 @@ class ModelRelease
                 $this->release = $this->getReleaseModel()::query()->latest('created_at')->first();
                 $this->prevRelease = $this->getReleaseModel()::query()->latest('created_at')->skip(1)->first();
 
-                if (!$this->release) {
+                if ((!$this->release) || ($this->prevRelease?->cleaned_at)) {
                     return [
                         'status' => 'warning',
                         'message' => 'No release available!',
@@ -85,7 +85,7 @@ class ModelRelease
 
                     $model::query()
                         ->with([
-                            'origin' => fn($q) => $q->withTrashed()->where('release_id', $this->prevRelease?->id),
+                            'origin' => fn($q) => $q->withTrashed(),
                         ])
                         ->withTrashed()
                         ->where('release_id', $this->release->id)
@@ -116,7 +116,6 @@ class ModelRelease
         /** @var Model $origin */
         if ($origin = $model->origin) {
             $origin->restore();
-            $origin->saveQuietly();
         }
 
         if ($model->deleted_at) {
@@ -126,7 +125,6 @@ class ModelRelease
         }
 
         $model->release_id = null;
-
         $model->saveQuietly();
     }
 

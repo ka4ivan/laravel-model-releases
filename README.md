@@ -1,4 +1,4 @@
-# Model releases (versions) for Laravel Framework
+# Model Releases (versions) for Laravel Framework
 
 [![License](https://img.shields.io/packagist/l/ka4ivan/laravel-model-releases.svg?style=for-the-badge)](https://packagist.org/packages/ka4ivan/laravel-model-releases)
 [![Build Status](https://img.shields.io/github/stars/ka4ivan/laravel-model-releases.svg?style=for-the-badge)](https://github.com/ka4ivan/laravel-model-releases)
@@ -21,6 +21,7 @@
     - [Run/Rollback Releases](#runrollback-releases)
         - [Run release](#run-release)
         - [Rollback release](#rollback-release)
+  - [Clean outdated release data](#clean-outdated-release-data)
 
 ## Installation
 
@@ -45,13 +46,13 @@ return [
      * Models with relations for which slugs will be created using the command
      */
     'models' => [
-//        \App\Models\Article::class => [
+//        \App\Models\Post::class => [
 //            'relations' => [
 //                'media',
 //                'translations',
 //            ],
 //        ],
-//        \App\Models\Translations\ArticleTranslation::class => [],
+//        \App\Models\Translations\PostTranslation::class => [],
 //        \App\Models\Media::class => [],
     ],
 
@@ -59,6 +60,17 @@ return [
      * Release model
      */
     'model' => \Ka4ivan\ModelReleases\Models\Release::class,
+
+    /**
+     * Number of days after which release data will be considered stale and will be purged.
+     *
+     * If the number of days is 0, data will not be purged.
+     *
+     * It is impossible to rollback to a purged release!
+     */
+    'cleanup' => [
+        'outdated_releases_for_days' => 30,
+    ],
 ];
 ```
 
@@ -118,8 +130,8 @@ return new class extends Migration
             $table->timestamps();
             
             $table->softDeletes();
-            $table->releaseFields(); // After $table->softDeletes()
-//            $table->releaseUuidFields(); If the id field is a uuid
+            $table->releaseFields(); // after $table->softDeletes()
+//            $table->releaseUuidFields(); if the `id` field is a uuid
 
             $table->uuid('category_id')->nullable()->index();
         });
@@ -176,6 +188,7 @@ Here's what they actually add.
 Blueprint::macro('releaseUuidFields', function () {
     /** @var Blueprint $this */
     $this->timestamp('archive_at')->nullable()->after('deleted_at');
+    $this->json('release_data')->nullable();
     $this->foreignUuid('release_id')->nullable()->constrained('releases')->onDelete('set null');
     $this->uuid('prerelease_id')->nullable();
 });
@@ -183,6 +196,7 @@ Blueprint::macro('releaseUuidFields', function () {
 Blueprint::macro('releaseFields', function () {
     /** @var Blueprint $this */
     $this->timestamp('archive_at')->nullable()->after('deleted_at');
+    $this->json('release_data')->nullable();
     $this->foreignUuid('release_id')->nullable()->constrained('releases')->onDelete('set null');
     $this->unsignedBigInteger('prerelease_id')->nullable();
 });
@@ -190,7 +204,7 @@ Blueprint::macro('releaseFields', function () {
 Blueprint::macro('dropReleaseFields', function () {
     /** @var Blueprint $this */
     $this->dropForeign(['release_id']);
-    $this->dropColumn(['release_id', 'prerelease_id', 'archive_at']);
+    $this->dropColumn(['release_id', 'prerelease_id', 'release_data', 'archive_at']);
 });
 ```
 
@@ -382,7 +396,6 @@ $res = \ModelRelease::runRelease($data);
 ```php
 $res = \ModelRelease::rollbackRelease();
 
-
 //    $res = [
 //        'status' => 'success',
 //        'message' => 'The last release was rollbacked!',
@@ -398,3 +411,17 @@ $res = \ModelRelease::rollbackRelease();
 //        'message' => 'Rollback failed: ' . $e->getMessage(),
 //    ];
 ```
+
+### Clean outdated release data
+To clean up outdated release data, you can use the command
+```shell
+php artisan release:clean
+```
+
+This command can be run periodically in the cron
+```php
+$schedule->command('release:clean')
+    ->daily()
+    ->runInBackground();
+```
+- The number of days after which data is considered outdated can be specified in the config file `config('model-releases.cleanup.outdated_releases_for_days')`

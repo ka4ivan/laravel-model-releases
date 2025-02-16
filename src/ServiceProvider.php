@@ -20,6 +20,10 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/model-releases.php', 'model-releases');
+
+        $this->commands([
+            Console\CleanOutdatedReleaseData::class,
+        ]);
     }
 
     protected function publishConfig(): void
