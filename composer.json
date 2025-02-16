@@ -1,6 +1,6 @@
 {
     "name": "ka4ivan/laravel-model-releases",
-    "description": "Model releases (versions) for Laravel Framework",
+    "description": "Model Releases (versions) for Laravel Framework",
     "keywords": [
         "laravel", "model", "release", "version", "versioning", "deploy", "draft", "revision", "kachula"
     ],

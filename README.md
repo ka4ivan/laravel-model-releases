@@ -1,4 +1,4 @@
-# Model releases (versions) for Laravel Framework
+# Model Releases (versions) for Laravel Framework
 
 [![License](https://img.shields.io/packagist/l/ka4ivan/laravel-model-releases.svg?style=for-the-badge)](https://packagist.org/packages/ka4ivan/laravel-model-releases)
 [![Build Status](https://img.shields.io/github/stars/ka4ivan/laravel-model-releases.svg?style=for-the-badge)](https://github.com/ka4ivan/laravel-model-releases)
@@ -45,13 +45,13 @@ return [
      * Models with relations for which slugs will be created using the command
      */
     'models' => [
-//        \App\Models\Article::class => [
+//        \App\Models\Post::class => [
 //            'relations' => [
 //                'media',
 //                'translations',
 //            ],
 //        ],
-//        \App\Models\Translations\ArticleTranslation::class => [],
+//        \App\Models\Translations\PostTranslation::class => [],
 //        \App\Models\Media::class => [],
     ],
 
@@ -59,6 +59,17 @@ return [
      * Release model
      */
     'model' => \Ka4ivan\ModelReleases\Models\Release::class,
+
+    /**
+     * Number of days after which release data will be considered stale and will be purged.
+     *
+     * If the number of days is 0, data will not be purged.
+     *
+     * It is impossible to rollback to a purged release!
+     */
+    'cleanup' => [
+        'outdated_releases_for_days' => 30,
+    ],
 ];
 ```
 
@@ -118,8 +129,8 @@ return new class extends Migration
             $table->timestamps();
             
             $table->softDeletes();
-            $table->releaseFields(); // After $table->softDeletes()
-//            $table->releaseUuidFields(); If the id field is a uuid
+            $table->releaseFields(); // after $table->softDeletes()
+//            $table->releaseUuidFields(); if the `id` field is a uuid
 
             $table->uuid('category_id')->nullable()->index();
         });
@@ -381,7 +392,6 @@ $res = \ModelRelease::runRelease($data);
 #### Rollback release
 ```php
 $res = \ModelRelease::rollbackRelease();
-
 
 //    $res = [
 //        'status' => 'success',

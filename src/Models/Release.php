@@ -31,7 +31,7 @@ class Release extends Model
                 ->where('release_id', $this->id)
                 ->withTrashed()
                 ->with([
-                    'origin' => fn($q) => $q->withTrashed()->where('release_id', $this->previousRelease()?->id),
+                    'origin' => fn($q) => $q->withTrashed()->where('release_id', $this->getPreviousRelease()?->id),
                 ])
                 ->get();
 
@@ -54,7 +54,14 @@ class Release extends Model
         return array_filter($changelog);
     }
 
-    public function previousRelease(): ?self
+    public static function getLastRelease(): ?self
+    {
+        return self::query()
+            ->orderBy('created_at', 'desc')
+            ->first();   
+    }
+
+    public function getPreviousRelease(): ?self
     {
         return self::query()
             ->where('created_at', '<', $this->created_at)
@@ -62,7 +69,7 @@ class Release extends Model
             ->first();
     }
 
-    public function nextRelease(): ?self
+    public function getNextRelease(): ?self
     {
         return self::query()
             ->where('created_at', '>', $this->created_at)
