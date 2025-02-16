@@ -174,7 +174,7 @@ trait HasReleases
         return Arr::get($this->release_data ?? [], $key, $default);
     }
 
-    public function changelog($release = null): array
+    public function changelog($release = null, array $fields = []): array
     {
         $changelog = [];
 
@@ -197,7 +197,11 @@ trait HasReleases
             $type = $entity->archive_at && $entity->origin ? 'deleted'
                 : ($entity->origin ? 'updated' : 'created');
 
-            $changelog[$entity->release_id ?? 'prerelease'][$type] = $entity;
+            $filteredEntity = $fields
+                ? $entity->only($fields)
+                : $entity;
+
+            $changelog[$entity->release_id ?? 'prerelease'][$type] = $filteredEntity;
         }
 
         return $changelog;
