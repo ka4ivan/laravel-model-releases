@@ -1,12 +1,8 @@
  
 # Changelog
 
-<!-- ## 0.0.1 - 2024-09-30
-
+## 1.0.0 - 2024-02-11
 - Release
 
-## 1.0.0 - 2024-10-11
-
-- Add Facade
-- Remove Static
- -->
+## 1.0.1 - 2024-02-12
+- Upd README.md
