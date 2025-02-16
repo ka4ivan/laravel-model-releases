@@ -118,6 +118,9 @@ class ModelRelease
         if ($model->deleted_at) {
             $model->restore();
             $model->release_id = $this->prevRelease?->id;
+        } elseif ($model->archive_at) {
+            $model->archive_at = null;
+            $model->release_id = null;
         } else {
             $model->release_id = null;
         }
