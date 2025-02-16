@@ -33,7 +33,7 @@ php artisan vendor:publish --provider="Ka4ivan\ModelReleases\ServiceProvider"
 - config
 - migration
 
-This is the default content of the config file:
+#### This is the default content of the config file:
 ```php
 <?php
 
@@ -64,12 +64,11 @@ return [
 php artisan migrate
 ```
 
-
 ## Usage
 
 ### Preparing your model
 
-To associate releases with a model, the model must implement the following traits: HasReleases, SoftDeletes.
+To associate releases with a model, the model must implement the following traits: `HasReleases`, `SoftDeletes`.
 ```php
 <?php
 
@@ -240,7 +239,7 @@ public function update(ArticleRequest $request, Article $article)
 ```php
 /**
  * @param Article $article
- * @return RedirectResponse
+ * @return \Illuminate\Http\RedirectResponse
  */
 public function destroy(Article $article)
 {
@@ -303,7 +302,7 @@ $res = \ModelRelease::runRelease($data);
 
 #### Rollback release
 ```php
-$res = \ModelRelease::runRelease($data);
+$res = \ModelRelease::rollbackRelease();
 
 
 //    $res = [
