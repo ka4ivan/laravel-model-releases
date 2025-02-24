@@ -46,7 +46,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
     {
         Blueprint::macro('releaseUuidFields', function () {
             /** @var Blueprint $this */
-            $this->timestamp('archive_at')->nullable()->after('deleted_at');
+            $this->timestamp('archive_at')->nullable();
             $this->json('release_data')->nullable();
             $this->foreignUuid('release_id')->nullable()->constrained('releases')->onDelete('set null');
             $this->uuid('prerelease_id')->nullable();
@@ -54,7 +54,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
 
         Blueprint::macro('releaseFields', function () {
             /** @var Blueprint $this */
-            $this->timestamp('archive_at')->nullable()->after('deleted_at');
+            $this->timestamp('archive_at')->nullable();
             $this->json('release_data')->nullable();
             $this->foreignUuid('release_id')->nullable()->constrained('releases')->onDelete('set null');
             $this->unsignedBigInteger('prerelease_id')->nullable();
