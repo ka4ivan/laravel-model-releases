@@ -21,7 +21,10 @@
     "autoload": {
         "psr-4": {
             "Ka4ivan\\ModelReleases\\": "src"
-        }
+        },
+        "files": [
+            "src/helpers.php"
+        ]
     },
     "extra": {
         "laravel": {

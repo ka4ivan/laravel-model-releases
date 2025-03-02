@@ -21,6 +21,10 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../config/model-releases.php', 'model-releases');
 
+        $this->app->singleton(\Ka4ivan\ModelReleases\ModelRelease::class, function () {
+            return new \Ka4ivan\ModelReleases\ModelRelease;
+        });
+
         $this->commands([
             Console\CleanOutdatedReleaseData::class,
         ]);
@@ -37,7 +41,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
     {
         if (! class_exists('CreateReleasesTable')) {
             $this->publishes([
-                __DIR__.'/../database/migrations/create_releases_table.php.stub' => database_path('migrations/'.date('Y_m_d_His', time()).'_create_releases_table.php'),
+                __DIR__.'/../database/migrations/create_releases_table.php.stub' => database_path('migrations/0002_02_02_000001_create_releases_table.php'),
             ], 'laravel-model-releases-migrations');
         }
     }
