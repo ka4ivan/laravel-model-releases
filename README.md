@@ -26,6 +26,8 @@
   - [Clean data](#clean-data)
     - [Clean outdated release data](#clean-outdated-release-data)
     - [Clear all Prereleases](#clear-all-prereleases)
+  - [Helpers](#helpers)
+    - [buildReleaseTree](#buildReleaseTree)
 
 ## Installation
 
@@ -134,7 +136,7 @@ return new class extends Migration
             $table->timestamps();
             
             $table->softDeletes();
-            $table->releaseFields(); // after $table->softDeletes()
+            $table->releaseFields();
 //            $table->releaseUuidFields(); if the `id` field is a uuid
 
             $table->uuid('category_id')->nullable()->index();
@@ -491,4 +493,12 @@ $res = \ModelRelease::clearPrereleases()
 //        'status' => 'success',
 //        'message' => 'Prereleases was successfully cleared!',
 //    ]
+```
+
+### Helpers
+#### buildReleaseTree
+Returns a collection of releases with a built tree of `childrens` relationship.
+```php
+$releases = \Ka4ivan\ModelReleases\Models\Release::all();
+$res = buildReleaseTree($releases);
 ```

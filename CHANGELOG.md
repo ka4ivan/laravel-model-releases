@@ -1,43 +1,48 @@
- 
 # Changelog
 
-## 1.0.0 - 2025-02-11
-- Release
+## 2.0.1 - 2025-03-02
+- Update README.md
 
-## 1.0.1 - 2025-02-12
-- Upd README.md
+## 2.0.0 - 2025-03-02
+- Release switching
+- Release hierarchy
+- New helper `buildReleaseTree`
+- New relationship `postrelease`
 
-## 1.0.2 - 2025-02-13
-- Upd README.md
+## 1.2.5 - 2025-02-23
+- Fix bug
 
-## 1.1.0 - 2025-02-15
-- Add release and model release changelog
-- Add new field to models - `release_data`
+## 1.2.4 - 2025-02-21
+- Fix bug
 
-## 1.1.1 - 2025-02-15
-- Upd README.md
+## 1.2.3 - 2025-02-20
+- Add user to Release
 
-## 1.1.2 - 2025-02-15
-- Add custom fields to release changelog
+## 1.2.2 - 2025-02-17
+- Add clearing of all prerelease data
+
+## 1.2.1 - 2025-02-16
+- Update README.md
 
 ## 1.2.0 - 2025-02-16
 - Add clean outdated release data command - `php artisan release:clean`
 - Add new field to `releases` table - `cleaned_at`
 
-## 1.2.1 - 2025-02-16
-- Upd README.md
+## 1.1.2 - 2025-02-15
+- Add custom fields to release changelog
 
-## 1.2.2 - 2025-02-17
-- Add clearing of all prerelease data
+## 1.1.1 - 2025-02-15
+- Update README.md
 
-## 1.2.3 - 2025-02-20
-- Add user to Release
+## 1.1.0 - 2025-02-15
+- Add release and model release changelog
+- Add new field to models - `release_data`
 
-## 1.2.4 - 2025-02-21
-- Fix bug
+## 1.0.2 - 2025-02-13
+- Update README.md
 
-## 1.2.5 - 2025-02-23
-- Fix bug
+## 1.0.1 - 2025-02-12
+- Update README.md
 
-## 2.0.0 - 2025-03-02
-- Release switching
+## 1.0.0 - 2025-02-11
+- Initial release
