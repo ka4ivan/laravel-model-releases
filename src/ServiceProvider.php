@@ -21,6 +21,10 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../config/model-releases.php', 'model-releases');
 
+        $this->app->singleton(\Ka4ivan\ModelReleases\ModelRelease::class, function () {
+            return new \Ka4ivan\ModelReleases\ModelRelease;
+        });
+
         $this->commands([
             Console\CleanOutdatedReleaseData::class,
         ]);

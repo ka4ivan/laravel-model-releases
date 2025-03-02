@@ -24,7 +24,7 @@ trait HasReleases
      */
     public function release(): BelongsTo
     {
-        return $this->BelongsTo(\ModelRelease::getReleaseModel());
+        return $this->belongsTo(\ModelRelease::getReleaseModel());
     }
 
     /**
@@ -34,7 +34,17 @@ trait HasReleases
      */
     public function prerelease(): HasOne
     {
-        return $this->hasOne(self::class, 'id', 'prerelease_id');
+        return $this->hasOne(self::class, 'prerelease_id', 'id')->whereNull('release_id');
+    }
+
+    /**
+     * A model that is not yet in release and is a draft of a model in release
+     * TODO поміняти текст
+     * @return HasOne
+     */
+    public function postrelease(): HasOne
+    {
+        return $this->hasOne(self::class, 'prerelease_id', 'id')->whereIn('release_id', \ModelRelease::getActiveReleasesIds());
     }
 
     /**
@@ -44,7 +54,7 @@ trait HasReleases
      */
     public function origin(): BelongsTo
     {
-        return $this->belongsTo(self::class, 'id', 'prerelease_id');
+        return $this->belongsTo(self::class, 'prerelease_id', 'id');
     }
 
     public function initializeHasReleases()
@@ -63,7 +73,12 @@ trait HasReleases
 
     public function scopeByReleased(Builder $query): Builder
     {
-        return $query->whereNotNull('release_id');
+        return $query->whereIn('release_id', \ModelRelease::getActiveReleasesIds());
+    }
+
+    public function scopeByAdminReleased(Builder $query): Builder
+    {
+        return $query->whereIn('release_id', \ModelRelease::getActiveReleasesIds())->orWhereNull('release_id');
     }
 
     public function canEditPrerelease(): bool
@@ -109,7 +124,7 @@ trait HasReleases
             ]);
 
             foreach (config('model-releases.models.' . __CLASS__ . '.relations', []) as $relation) {
-                $this->origin->{$relation}()->update([
+                $this->origin?->{$relation}()->update([
                     'prerelease_id' => null,
                 ]);
             }
@@ -156,10 +171,8 @@ trait HasReleases
             $replica->{$key} = $value;
         }
 
+        $replica->prerelease_id = $this->id;
         $replica->save();
-
-        $this->prerelease_id = $replica->id;
-        $this->save();
 
         return $replica;
     }
@@ -181,6 +194,7 @@ trait HasReleases
         $builder = self::query()
             ->withTrashed()
             ->whereJsonContains('release_data->source_id', $this->getReleaseData('source_id'))
+            ->byAdminReleased()
             ->with([
                 'release',
                 'origin' => fn($q) => $q->withTrashed(),

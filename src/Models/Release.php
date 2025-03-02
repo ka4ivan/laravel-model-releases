@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 
 class Release extends Model
 {
@@ -17,16 +18,19 @@ class Release extends Model
         'id',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'extra' => 'array',
-        ];
-    }
+    protected $casts = [
+        'is_active' => 'boolean',
+        'extra' => 'array',
+    ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function children()
+    {
+        return $this->hasMany(self::class, 'parent_id');
     }
 
     public function changelog(string $model = null, array $fields = []): array
@@ -44,7 +48,7 @@ class Release extends Model
                 ->where('release_id', $this->id)
                 ->withTrashed()
                 ->with([
-                    'origin' => fn($q) => $q->withTrashed()->where('release_id', $this->getPreviousRelease()?->id),
+                    'origin' => fn($q) => $q->withTrashed(),
                 ])
                 ->get();
 
@@ -88,5 +92,16 @@ class Release extends Model
             ->where('created_at', '>', $this->created_at)
             ->orderBy('created_at', 'desc')
             ->first();
+    }
+
+    /**
+     * @param $key
+     * @param null $default
+     * @return array|\ArrayAccess|mixed
+     */
+    public function getExtra($key, $default = null)
+    {
+        return Arr::get($this->extra ?? [], $key, $default);
+
     }
 }
