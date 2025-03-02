@@ -86,14 +86,21 @@ class ModelRelease
         }
     }
 
-    public function changeRelease(Model $release): array
+    public function switchRelease(Model $release): array
     {
         try {
             return DB::transaction(function () use ($release) {
                 if ($release->id === $this->getActiveRelease()?->id) {
                     return [
                         'status' => 'success',
-                        'message' => 'The release was successfully changed!',
+                        'message' => 'The release was successfully switched!',
+                    ];
+                }
+
+                if ($release->cleaned_at) {
+                    return [
+                        'status' => 'error',
+                        'message' => 'This release is not available for switching!',
                     ];
                 }
 
@@ -119,25 +126,25 @@ class ModelRelease
                         ->withTrashed()
                         ->chunk(50, function ($entities) {
                             foreach ($entities as $entity) {
-                                $this->doChange($entity);
+                                $this->doSwitch($entity);
                             }
                         });
                 }
 
                 return [
                     'status' => 'success',
-                    'message' => 'The release was successfully changed!',
+                    'message' => 'The release was successfully switched!',
                 ];
             });
         } catch (Throwable $e) {
             return [
                 'status' => 'error',
-                'message' => 'The release change failed: ' . $e->getMessage(),
+                'message' => 'The release switching failed: ' . $e->getMessage(),
             ];
         }
     }
 
-    private function doChange(Model $model): void
+    private function doSwitch(Model $model): void
     {
         if ($model->postrelease) {
             $model->delete();
@@ -150,8 +157,8 @@ class ModelRelease
     {
         try {
             return DB::transaction(function () {
-                $release = $this->getActiveRelease();
-                $this->prevRelease = $this->getReleaseModel()::query()->latest('created_at')->skip(1)->first();
+                $release = $this->getActiveRelease()->load('childrensRecursive');
+                $this->prevRelease = $release?->getPrevRelease();
 
                 if ((!$release) || ($this->prevRelease?->cleaned_at)) {
                     return [
@@ -164,6 +171,14 @@ class ModelRelease
                     $model::query()
                         ->whereNull('release_id')
                         ->forceDelete();
+
+                    foreach ($release->getAllChildrens() as $child) {
+                        $model::query()
+                            ->where('release_id', $child->id)
+                            ->forceDelete();
+
+                        $child->delete();
+                    }
 
                     $model::query()
                         ->with([

@@ -14,6 +14,7 @@
         - [Store model](#store-model)
         - [Update model](#update-model)
         - [Delete model](#delete-model)
+        - [Scopes](#scopes)
     - [Base relationships](#base-relationships)
     - [Release/Model Changelogs](#releasemodel-changelogs)
         - [Release Changelog](#release-changelog)
@@ -21,6 +22,7 @@
     - [Run/Rollback Releases](#runrollback-releases)
         - [Run release](#run-release)
         - [Rollback release](#rollback-release)
+        - [Switch release](#switch-release)
   - [Clean data](#clean-data)
     - [Clean outdated release data](#clean-outdated-release-data)
     - [Clear all Prereleases](#clear-all-prereleases)
@@ -269,6 +271,21 @@ public function destroy(Article $article)
 }
 ```
 
+#### Scopes
+```php
+// Client
+$posts = Post::with('media','translations', 'categories.translations', 'category.translations')
+    ->byReleased()
+    ->paginate();
+
+// Admin
+$posts = Post::query()
+    ->with('translations', 'category', 'prerelease.translations')
+    ->whereDoesntHave('origin') // Optional
+    ->byAdminReleased()
+    ->paginate();
+```
+
 ### Base relationships
 ```php
 /**
@@ -289,6 +306,16 @@ public function release(): BelongsTo
 public function prerelease(): HasOne
 {
     return $this->hasOne(self::class, 'id', 'prerelease_id');
+}
+
+/**
+ * A model that is already fully released
+ *
+ * @return HasOne
+ */
+public function postrelease(): HasOne
+{
+    return $this->hasOne(self::class, 'prerelease_id', 'id')->whereIn('release_id', \ModelRelease::getActiveReleasesIds());
 }
 
 /**
@@ -395,6 +422,7 @@ $res = \ModelRelease::runRelease($data);
 ```
 
 #### Rollback release
+**WARNING!** When performing the operation, all unsaved drafts <b>will be deleted</b>!
 ```php
 $res = \ModelRelease::rollbackRelease();
 
@@ -411,6 +439,30 @@ $res = \ModelRelease::rollbackRelease();
 //    $res = [
 //        'status' => 'error',
 //        'message' => 'Rollback failed: ' . $e->getMessage(),
+//    ];
+```
+
+#### Switch release
+It is possible to switch to a release that was several steps back or forward and start a new branch of releases.
+
+**WARNING!** When performing the operation, all unsaved drafts <b>will be deleted</b>!
+```php
+$release = Release::first();
+$res = \ModelRelease::switchRelease($release);
+
+//    $res = [
+//        'status' => 'success',
+//        'message' => 'The release was successfully switched!',
+//    ];
+//        OR
+//    $res = [
+//        'status' => 'error',
+//        'message' => 'The release switching failed: ' . $e->getMessage(),
+//    ];
+//        OR
+//    $res = [
+//        'status' => 'error',
+//        'message' => 'This release is not available for switching!',
 //    ];
 ```
 

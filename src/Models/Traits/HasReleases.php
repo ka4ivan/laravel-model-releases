@@ -38,8 +38,8 @@ trait HasReleases
     }
 
     /**
-     * A model that is not yet in release and is a draft of a model in release
-     * TODO поміняти текст
+     * A model that is already fully released
+     *
      * @return HasOne
      */
     public function postrelease(): HasOne
