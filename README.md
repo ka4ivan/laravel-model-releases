@@ -27,7 +27,7 @@
     - [Clean outdated release data](#clean-outdated-release-data)
     - [Clear all Prereleases](#clear-all-prereleases)
   - [Helpers](#helpers)
-    - [buildReleaseTree](#buildReleaseTree)
+    - [build_release_tree](#build_release_tree)
 
 ## Installation
 
@@ -496,9 +496,9 @@ $res = \ModelRelease::clearPrereleases()
 ```
 
 ### Helpers
-#### buildReleaseTree
+#### build_release_tree
 Returns a collection of releases with a built tree of `childrens` relationship.
 ```php
 $releases = \Ka4ivan\ModelReleases\Models\Release::all();
-$res = buildReleaseTree($releases);
+$res = build_release_tree($releases);
 ```

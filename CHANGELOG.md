@@ -1,12 +1,15 @@
 # Changelog
 
+## 2.0.2 - 2025-03-16
+- Update helpers
+
 ## 2.0.1 - 2025-03-02
 - Update README.md
 
 ## 2.0.0 - 2025-03-02
 - Release switching
 - Release hierarchy
-- New helper `buildReleaseTree`
+- New helper `build_release_tree`
 - New relationship `postrelease`
 
 ## 1.2.5 - 2025-02-23
