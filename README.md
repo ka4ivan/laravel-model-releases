@@ -5,7 +5,7 @@
 [![Latest Stable Version](https://img.shields.io/packagist/v/ka4ivan/laravel-model-releases.svg?style=for-the-badge)](https://packagist.org/packages/ka4ivan/laravel-model-releases)
 [![Total Downloads](https://img.shields.io/packagist/dt/ka4ivan/laravel-model-releases.svg?style=for-the-badge)](https://packagist.org/packages/ka4ivan/laravel-model-releases)
 
-## 📖 Table of Contents [![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://stand-with-ukraine.pp.ua)
+## 📖 Table of Contents
 - [Installation](#installation)
 - [Usage](#usage)
     - [Preparing your model](#preparing-your-model)
@@ -500,5 +500,6 @@ $res = \ModelRelease::clearPrereleases()
 Returns a collection of releases with a built tree of `childrens` relationship.
 ```php
 $releases = \Ka4ivan\ModelReleases\Models\Release::all();
+
 $res = build_release_tree($releases);
 ```
