@@ -91,19 +91,12 @@ php artisan migrate
 
 To associate releases with a model, the model must implement the following traits: `HasReleases`, `SoftDeletes`.
 ```php
-<?php
-
-namespace App\Models;
-
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Ka4ivan\ModelReleases\Models\Traits\HasReleases;
 
 class Article extends Model
 {
-    use HasUuids,
-        SoftDeletes, // REQUIRED!!!
+    use SoftDeletes, // REQUIRED!!!
         HasReleases;
 }
 ```
