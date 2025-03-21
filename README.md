@@ -234,7 +234,7 @@ public function store(ArticleRequest $request)
 ```php
 /**
  * @param ArticleRequest $request
- * @param $id
+ * @param Article $article
  * @return \Illuminate\Http\RedirectResponse
  */
 public function update(ArticleRequest $request, Article $article)
