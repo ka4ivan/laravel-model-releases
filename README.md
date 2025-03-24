@@ -357,7 +357,7 @@ $changelog = $release->changelog();
 //      ]
 //    ]
 ```
-OR only one model.
+Or only one model.
 ```php
 $release = Release::first();
 
