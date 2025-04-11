@@ -155,7 +155,7 @@ trait HasReleases
         });
     }
 
-    private function updateRelations(Model $model, array $relationsData = []): void
+    protected function updateRelations(Model $model, array $relationsData = []): void
     {
         foreach (config('model-releases.models.' . __CLASS__ . '.relations', []) as $relation) {
             foreach ($this->$relation ?? [] as $origin) {
@@ -230,7 +230,7 @@ trait HasReleases
         return $changelog;
     }
 
-    private function findByUniqueFields(array $fields = []): ?Model
+    protected function findByUniqueFields(array $fields = []): ?Model
     {
         $table = $this->getTable();
 

@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.0.4 - 2025-04-12
+- Method visibility changed from private to protected.
+
 ## 2.0.3 - 2025-04-11
 - Added a new parameter $relationsData to the deleteWithReleases() method
 - Added a new method: isNew()
