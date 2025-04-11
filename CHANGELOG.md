@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.3 - 2025-04-11
+- Added a new parameter $relationsData to the deleteWithReleases() method
+- Added a new method: isNew()
+
 ## 2.0.2 - 2025-03-16
 - Update helpers
 

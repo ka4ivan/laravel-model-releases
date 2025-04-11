@@ -91,9 +91,18 @@ trait HasReleases
         return boolval($this->release_id);
     }
 
-    public function isPrerelease(): bool
+    public function isNew(): bool
     {
-        return !$this->release_id;
+        return (!$this->release_id && !$this->origin);
+    }
+
+    public function isPrerelease(bool $withNew = false): bool
+    {
+        if ($withNew) {
+            return !$this->release_id;
+        }
+
+        return (!$this->release_id && $this->origin);
     }
 
     public function isArchive(): bool
@@ -111,12 +120,12 @@ trait HasReleases
         $this->update(['archive_at' => null]);
     }
 
-    public function deleteWithReleases(): Model
+    public function deleteWithReleases(array $relationsData = []): Model
     {
         if ($this->release_id) {
             $this->updateWithReleases([
                 'archive_at' => Carbon::now(),
-            ]);
+            ], $relationsData);
         } else {
             $this->forceDelete();
             $this->origin?->updateQuietly([
