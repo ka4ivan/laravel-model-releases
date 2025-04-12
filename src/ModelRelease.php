@@ -193,7 +193,7 @@ class ModelRelease
                         });
                 }
 
-                $this->prevRelease->update([
+                $this->prevRelease?->update([
                     'is_active' => true,
                 ]);
                 $release->delete();
