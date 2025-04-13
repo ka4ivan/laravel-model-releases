@@ -157,7 +157,7 @@ class ModelRelease
     {
         try {
             return DB::transaction(function () {
-                $release = $this->getActiveRelease()->load('childrensRecursive');
+                $release = $this->getActiveRelease()?->load('childrensRecursive');
                 $this->prevRelease = $release?->getPrevRelease();
 
                 if ((!$release) || ($this->prevRelease?->cleaned_at)) {
@@ -193,7 +193,7 @@ class ModelRelease
                         });
                 }
 
-                $this->prevRelease->update([
+                $this->prevRelease?->update([
                     'is_active' => true,
                 ]);
                 $release->delete();

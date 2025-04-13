@@ -1,7 +1,13 @@
 # Changelog
 
+## 2.0.6 - 2025-04-14
+- Fix bugs
+
+## 2.0.5 - 2025-04-13
+- Fix bugs
+
 ## 2.0.4 - 2025-04-12
-- Method visibility changed from private to protected.
+- Method visibility changed from private to protected
 
 ## 2.0.3 - 2025-04-11
 - Added a new parameter $relationsData to the deleteWithReleases() method
