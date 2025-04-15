@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.1.2 - 2025-04-16
+- Update outdated release data
+
 ## 2.1.1 - 2025-04-15
 - Fix bugs
 
