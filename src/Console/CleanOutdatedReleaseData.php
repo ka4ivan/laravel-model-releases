@@ -39,6 +39,7 @@ class CleanOutdatedReleaseData extends Command
 
         $releases = $releaseModel::query()
             ->where('created_at', '<=', Carbon::now()->subDays($days))
+            ->where('updated_at', '<=', Carbon::now()->subDays(7))
             ->whereNot('id', $releaseModel::getActiveRelease()?->id)
             ->get();
 

@@ -82,6 +82,11 @@ class Release extends Model
         return array_filter($changelog);
     }
 
+    public function isCleaned(): bool
+    {
+        return (bool) $this->cleaned_at;
+    }
+
     public static function getActiveRelease(): ?self
     {
         return self::query()
