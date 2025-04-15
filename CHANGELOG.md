@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.1.3 - 2025-04-17
+- New method (Release model): isCleaned
+
 ## 2.1.2 - 2025-04-16
 - Update outdated release data
 
