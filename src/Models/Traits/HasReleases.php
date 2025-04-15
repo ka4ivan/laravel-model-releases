@@ -175,13 +175,15 @@ trait HasReleases
 
     public function getPrereleaseOrOrigin(array $replicaData = [], array $data = []): Model
     {
-        if (is_null($this->release_id) && !\Arr::get($data, 'is_delete')) {
+        $isDelete = (bool) \Arr::get($data, 'is_delete');
+
+        if (is_null($this->release_id) && !$isDelete) {
             return $this;
         }
 
         $replica = $this->prerelease
             ?? $this->findByUniqueFields($replicaData)
-            ?? $this->findByIfDelete(\Arr::get($data, 'is_delete'))
+            ?? $this->findByIfDelete($isDelete)
             ?? $this->replicate();
 
         $replica->release_id = null;

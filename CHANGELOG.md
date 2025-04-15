@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.1.1 - 2025-04-15
+- Fix bugs
+
 ## 2.1.0 - 2025-04-15
 - New method: isPrereleaseOrNew
 - Update deleteWithReleases
