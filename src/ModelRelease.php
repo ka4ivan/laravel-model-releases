@@ -44,7 +44,7 @@ class ModelRelease
                         ->with(['origin'])
                         ->whereNull('release_id')
                         ->orWhere(fn($q) => $q->whereNotNull('archive_at')->whereNull('deleted_at'))
-                        ->chunk(50, function ($entities) {
+                        ->chunk(1000, function ($entities) {
                             foreach ($entities as $entity) {
                                 $this->doRelease($entity);
                             }
@@ -124,7 +124,7 @@ class ModelRelease
                             'postrelease' => fn($q) => $q->withTrashed(),
                         ])
                         ->withTrashed()
-                        ->chunk(50, function ($entities) {
+                        ->chunk(1000, function ($entities) {
                             foreach ($entities as $entity) {
                                 $this->doSwitch($entity);
                             }
@@ -186,7 +186,7 @@ class ModelRelease
                         ])
                         ->withTrashed()
                         ->where('release_id', $release->id)
-                        ->chunk(50, function ($entities) {
+                        ->chunk(1000, function ($entities) {
                             foreach ($entities as $entity) {
                                 $this->doRollback($entity);
                             }
