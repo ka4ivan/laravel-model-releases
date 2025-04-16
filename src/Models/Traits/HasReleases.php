@@ -116,6 +116,11 @@ trait HasReleases
         return boolval($this->archive_at);
     }
 
+    public function releaseProcess()
+    {
+//        If you need to implement something custom for the model.
+    }
+
     public function archive(): void
     {
         $this->update(['archive_at' => Carbon::now()]);
@@ -195,6 +200,10 @@ trait HasReleases
 
         $replica->prerelease_id = $this->id;
         $replica->save();
+
+        if ($replica->wasRecentlyCreated) {
+            $this->releaseProcess($replica);
+        }
 
         return $replica;
     }
