@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.1.5 - 2025-04-19
+- Fix bugs
+
 ## 2.1.4 - 2025-04-18
 - A new method for the model: `releaseProcess`, if you need to perform something custom during the release saving process.
 
