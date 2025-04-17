@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.1.5 - 2025-04-19
+- Fix bugs
+
+## 2.1.4 - 2025-04-18
+- A new method for the model: `releaseProcess`, if you need to perform something custom during the release saving process.
+
+## 2.1.3 - 2025-04-17
+- New method (Release model): `isCleaned`
+
+## 2.1.2 - 2025-04-16
+- Update outdated release data
+
+## 2.1.1 - 2025-04-15
+- Fix bugs
+
+## 2.1.0 - 2025-04-15
+- New method: `isPrereleaseOrNew`
+- Update `deleteWithReleases`
+- Update `changelog` (return collection)
+
 ## 2.0.6 - 2025-04-14
 - Fix bugs
 
@@ -10,8 +30,8 @@
 - Method visibility changed from private to protected
 
 ## 2.0.3 - 2025-04-11
-- Added a new parameter $relationsData to the deleteWithReleases() method
-- Added a new method: isNew()
+- Added a new parameter `$relationsData` to the `deleteWithReleases` method
+- Added a new method: `isNew`
 
 ## 2.0.2 - 2025-03-16
 - Update helpers

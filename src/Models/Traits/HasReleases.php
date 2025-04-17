@@ -11,9 +11,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 trait HasReleases
 {
@@ -105,9 +106,19 @@ trait HasReleases
         return (!$this->release_id && $this->origin);
     }
 
+    public function isPrereleaseOrNew(): bool
+    {
+        return $this->isPrerelease(true);
+    }
+
     public function isArchive(): bool
     {
         return boolval($this->archive_at);
+    }
+
+    public function releaseProcess()
+    {
+//        If you need to implement something custom for the model.
     }
 
     public function archive(): void
@@ -125,6 +136,7 @@ trait HasReleases
         if ($this->release_id) {
             $this->updateWithReleases([
                 'archive_at' => Carbon::now(),
+                'is_delete' => true,
             ], $relationsData);
         } else {
             $this->forceDelete();
@@ -149,30 +161,36 @@ trait HasReleases
 
             $model->update($data);
 
-            $this->updateRelations($model, $relationsData);
+            $this->updateRelations($model, $relationsData, $data);
 
             return $model;
         });
     }
 
-    protected function updateRelations(Model $model, array $relationsData = []): void
+    protected function updateRelations(Model $model, array $relationsData = [], array $data = []): void
     {
         foreach (config('model-releases.models.' . __CLASS__ . '.relations', []) as $relation) {
             foreach ($this->$relation ?? [] as $origin) {
                 $origin->getPrereleaseOrOrigin(array_merge([
                     $this->{$relation}()->getForeignKeyName() => $model->id
-                ], $relationsData[$relation] ?? []));
+                ], $relationsData[$relation] ?? []), $data);
             }
         }
     }
 
-    public function getPrereleaseOrOrigin(array $replicaData = []): Model
+    public function getPrereleaseOrOrigin(array $replicaData = [], array $data = []): Model
     {
-        if (!$this->release_id) {
+        $isDelete = (bool) \Arr::get($data, 'is_delete');
+
+        if (is_null($this->release_id) && !$isDelete) {
             return $this;
         }
 
-        $replica = $this->prerelease ?? $this->findByUniqueFields($replicaData) ?? $this->replicate();
+        $replica = $this->prerelease
+            ?? $this->findByUniqueFields($replicaData)
+            ?? $this->findByIfDelete($isDelete)
+            ?? $this->replicate();
+
         $replica->release_id = null;
         $replica->setRelations([]);
 
@@ -182,6 +200,10 @@ trait HasReleases
 
         $replica->prerelease_id = $this->id;
         $replica->save();
+
+        if ($replica->wasRecentlyCreated) {
+            $this->releaseProcess($replica);
+        }
 
         return $replica;
     }
@@ -196,7 +218,7 @@ trait HasReleases
         return Arr::get($this->release_data ?? [], $key, $default);
     }
 
-    public function changelog($release = null, array $fields = []): array
+    public function changelog($release = null, array $fields = [], bool $withActions = true): Collection
     {
         $changelog = [];
 
@@ -217,17 +239,30 @@ trait HasReleases
         $entities = $builder->get();
 
         foreach ($entities as $entity) {
-            $type = $entity->archive_at && $entity->origin ? 'deleted'
+            $action = $entity->archive_at && $entity->origin ? 'deleted'
                 : ($entity->origin ? 'updated' : 'created');
+
+            if ($withActions) {
+                $entity->action = $action;
+            }
 
             $filteredEntity = $fields
                 ? $entity->only($fields)
                 : $entity;
 
-            $changelog[$entity->release_id ?? 'prerelease'][$type] = $filteredEntity;
+            $changelog[] = $filteredEntity;
         }
 
-        return $changelog;
+        return collect($changelog);
+    }
+
+    public function getChangelogIds(): array
+    {
+        return self::query()
+            ->withTrashed()
+            ->whereJsonContains('release_data->source_id', $this->getReleaseData('source_id'))
+            ->pluck('id')
+            ->toArray();
     }
 
     protected function findByUniqueFields(array $fields = []): ?Model
@@ -249,5 +284,19 @@ trait HasReleases
         }
 
         return null;
+    }
+
+    protected function findByIfDelete(bool $isDelete = true): ?Model
+    {
+        if (!$isDelete) {
+            return null;
+        }
+
+        $model = self::query()
+            ->whereNot('id', $this->id)
+            ->whereNotNull('archive_at')
+            ->first();
+
+        return $model;
     }
 }
