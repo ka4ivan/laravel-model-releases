@@ -52,7 +52,7 @@ class Release extends Model
             'created' => [],
         ];
 
-        $models = $model ? [$model] : array_keys(config('model-releases.models', []));
+        $models = $model ? [$model] : config('model-releases.models', []);
 
         foreach ($models as $modelClass) {
             $entities = $modelClass::query()

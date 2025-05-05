@@ -45,7 +45,7 @@ class CleanOutdatedReleaseData extends Command
 
         try {
             DB::transaction(function () use ($releases) {
-                foreach (array_keys(config('model-releases.models', [])) as $model) {
+                foreach (config('model-releases.models', []) as $model) {
                     $model::query()
                         ->withTrashed()
                         ->whereNotNull('deleted_at')

@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.2.1 - 2025-05-05
+- Fix bugs
+
 ## 2.2.0 - 2025-05-05
 - Remove relations (config)
 
