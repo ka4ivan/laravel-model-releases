@@ -52,14 +52,9 @@ return [
      * Models with relations for which slugs will be created using the command
      */
     'models' => [
-//        \App\Models\Post::class => [
-//            'relations' => [
-//                'media',
-//                'translations',
-//            ],
-//        ],
-//        \App\Models\Translations\PostTranslation::class => [],
-//        \App\Models\Media::class => [],
+//        \App\Models\Post::class,
+//        \App\Models\Translations\PostTranslation::class,
+//        \App\Models\Media::class,
     ],
 
     /**

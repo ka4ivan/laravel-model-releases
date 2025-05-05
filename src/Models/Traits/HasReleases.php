@@ -121,6 +121,11 @@ trait HasReleases
 //        If you need to implement something custom for the model.
     }
 
+    public function deleteReleaseProcess()
+    {
+//        If you need to implement something custom for the model.
+    }
+
     public function archive(): void
     {
         $this->update(['archive_at' => Carbon::now()]);
@@ -131,51 +136,45 @@ trait HasReleases
         $this->update(['archive_at' => null]);
     }
 
-    public function deleteWithReleases(array $relationsData = []): Model
+    public function deleteWithReleases(): Model
     {
         if ($this->release_id) {
             $this->updateWithReleases([
                 'archive_at' => Carbon::now(),
                 'is_delete' => true,
-            ], $relationsData);
+            ]);
         } else {
             $this->forceDelete();
             $this->origin?->updateQuietly([
                 'prerelease_id' => null,
             ]);
 
-            foreach (config('model-releases.models.' . __CLASS__ . '.relations', []) as $relation) {
-                $this->origin?->{$relation}()->update([
-                    'prerelease_id' => null,
-                ]);
-            }
+            $this->deleteReleaseProcess();
         }
 
         return $this;
     }
 
-    public function updateWithReleases(array $data, array $relationsData = []): Model
+    public function updateWithReleases(array $data): Model
     {
-        return DB::transaction(function () use ($data, $relationsData) {
+        return DB::transaction(function () use ($data) {
             $model = $this->getPrereleaseOrOrigin();
 
             $model->update($data);
-
-            $this->updateRelations($model, $relationsData, $data);
 
             return $model;
         });
     }
 
-    protected function updateRelations(Model $model, array $relationsData = [], array $data = []): void
+    public function updateQuietlyWithReleases(array $data): Model
     {
-        foreach (config('model-releases.models.' . __CLASS__ . '.relations', []) as $relation) {
-            foreach ($this->$relation ?? [] as $origin) {
-                $origin->getPrereleaseOrOrigin(array_merge([
-                    $this->{$relation}()->getForeignKeyName() => $model->id
-                ], $relationsData[$relation] ?? []), $data);
-            }
-        }
+        return DB::transaction(function () use ($data) {
+            $model = $this->getPrereleaseOrOrigin();
+
+            $model->updateQuietly($data);
+
+            return $model;
+        });
     }
 
     public function getPrereleaseOrOrigin(array $replicaData = [], array $data = []): Model
