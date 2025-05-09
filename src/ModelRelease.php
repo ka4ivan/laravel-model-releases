@@ -39,7 +39,7 @@ class ModelRelease
                     'parent_id' => $release?->id,
                 ]));
 
-                foreach (array_keys(config('model-releases.models', [])) as $model) {
+                foreach (config('model-releases.models', []) as $model) {
                     $model::query()
                         ->with(['origin'])
                         ->whereNull('release_id')
@@ -114,7 +114,7 @@ class ModelRelease
 
                 $this->release = $release;
 
-                foreach (array_keys(config('model-releases.models', [])) as $model) {
+                foreach (config('model-releases.models', []) as $model) {
                     $model::query()
                         ->whereNull('release_id')
                         ->forceDelete();
@@ -167,7 +167,7 @@ class ModelRelease
                     ];
                 }
 
-                foreach (array_keys(config('model-releases.models', [])) as $model) {
+                foreach (config('model-releases.models', []) as $model) {
                     $model::query()
                         ->whereNull('release_id')
                         ->forceDelete();
@@ -230,7 +230,7 @@ class ModelRelease
 
     public function clearPrereleases(): array
     {
-        foreach (array_keys(config('model-releases.models', [])) as $model) {
+        foreach (config('model-releases.models', []) as $model) {
             $model::query()
                 ->whereNull('release_id')
                 ->withTrashed()

@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.0 - 2025-05-05
+- Remove relations (config)
+- Add `deleteReleaseProcess`
+- Add `updateQuietlyWithReleases`
+
 ## 2.1.5 - 2025-04-19
 - Fix bugs
 
