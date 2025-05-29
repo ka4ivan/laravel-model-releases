@@ -1,5 +1,8 @@
 # Changelog
 
+## 3.0.1 - 2025-05-26
+- Fix bugs
+
 ## 3.0.0 - 2025-05-05
 - Remove relations (config)
 - Add `deleteReleaseProcess`

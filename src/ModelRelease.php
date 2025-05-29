@@ -54,6 +54,8 @@ class ModelRelease
                 $this->newRelease->updateQuietly(['extra' => ['releases' => array_merge($release?->getExtra('releases') ?? [], [$this->newRelease->id])]]);
                 $release?->updateQuietly(['is_active' => false]);
 
+                $this->release = $this->newRelease;
+
                 return [
                     'status' => 'success',
                     'message' => 'The release was successfully created!',
@@ -197,6 +199,8 @@ class ModelRelease
                     'is_active' => true,
                 ]);
                 $release->delete();
+
+                $this->release = $this->prevRelease;
 
                 return [
                     'status' => 'success',
