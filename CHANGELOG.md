@@ -1,5 +1,8 @@
 # Changelog
 
+## 3.0.2 - 2026-06-18
+- Laravel 13 support
+
 ## 3.0.1 - 2025-05-26
 - Fix bugs
 
